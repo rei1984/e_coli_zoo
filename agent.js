@@ -58,6 +58,7 @@ class Agent {
         this.maxspeed = 0.5;    // Maximum speed
         this.maxforce = 0.02; // Maximum steering force
         this.splitrecovery = 100;
+        this.lifeSpan = 0;
     }
     getGenome() {
         return this.genome;
@@ -230,16 +231,19 @@ class Agent {
         this.borders();
         this.show();
         let m = Math.random();
-        if (m < 0.01 && colony.length < 20 && this.splitrecovery > 100) {
+        if (m < 0.01 && colony.length < 500 && this.splitrecovery > 100) {
           offspring = this.split();
           this.splitrecovery = 0;
         }
-        if (m < 0.02 && m > 0.017) {
+        // if (m < 0.02 && m > 0.017) {
+        if (this.lifeSpan > 300) {    
+          console.log("DEATH");
           var i = colony.indexOf(this);
           colony.splice(i, 1);
           return null;
         }
         this.splitrecovery++;
+        this.lifeSpan++;
         return offspring;
         // this.split();
     }
