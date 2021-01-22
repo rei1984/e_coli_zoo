@@ -17,6 +17,43 @@ class Gene {
     }
 }
 
+class Sector {
+    constructor(id) {
+        this.population = [];
+        // this.antibiotic = antibiotic;
+        this.id = id;
+    }
+}
+
+class Plate {
+    constructor(plateSize, startingfitness, effect) {
+        this.sectors = [];
+        for (var i = 0; i < plateSize; i++) {
+            this.sectors[i] = [];
+            for (var j = 0; j < plateSize; j++) {
+                this.sectors[i][j] = new Sector([i, j]);
+            }
+        }
+        this.effect = effect;
+        this.plateSize = plateSize;
+    }
+
+    
+
+
+
+
+
+
+
+
+    show() {
+        color(20);
+        rect(100, 100, this.plateSize, this.plateSize);
+        circle(100 + this.plateSize/2, 100 + this.plateSize/2, this.plateSize);
+    }
+}
+
 class Genome {
     constructor(genes) {
         this.genes = genes;
@@ -92,7 +129,7 @@ class Agent {
 
         
 
-        console.log(this.id + " SPLIT into " + newID + " with GENOME:[ " + newGenome.toString() + " ]...");
+        // console.log(this.id + " SPLIT into " + newID + " with GENOME:[ " + newGenome.toString() + " ]...");
 
         // space[loc.x][loc.y] = offspring;
         // space[loc.x][loc.y] = offspring.toString();
@@ -132,7 +169,7 @@ class Agent {
         }
     }
     //TODO: Merge this and cohesion to save computation time
-    getSeparation(colony) {
+    getSeparation(colony, plateSize) {
         let desiredseparation = 20.0;
         let steer = createVector(0, 0);
         let count = 0;
@@ -148,6 +185,17 @@ class Agent {
             steer.add(diff);
             count++; // Keep track of how many
           }
+        }
+        
+        //ensure within bounds
+
+        let d = p5.Vector.dist(this.position, createVector(100 + plateSize/2, 100 + plateSize/2));
+        if (d > plateSize/2 - 25) {
+            let diff = p5.Vector.sub(createVector(100 + plateSize/2, 100 + plateSize/2), this.position);
+            diff.normalize();
+            diff.div(d)
+            diff.mult(100);
+            steer.add(diff);
         }
         // Average -- divide by how many
         if (count > 0) {
@@ -194,11 +242,11 @@ class Agent {
         this.position.add(this.velocity);
         return this.position;
     }
-    updateVelocity(colony) {
+    updateVelocity(colony, plateSize) {
         // let coh = this.getCohesion(colony);
         let coh = createVector(0, 0);
         // let seperation = vectorScalar(this.getSeparation(colony), 1 * this.instability);
-        let sep = this.getSeparation(colony);
+        let sep = this.getSeparation(colony, plateSize);
 
         var acceleration = createVector(0, 0);
 
@@ -224,20 +272,20 @@ class Agent {
 
 
 
-    run(colony) {
+    run(colony, plateSize) {
         // this.flock(boids);
         let offspring = null;
-        this.updateVelocity(colony);
+        this.updateVelocity(colony, plateSize);
         this.borders();
         this.show();
         let m = Math.random();
-        if (m < 0.01 && colony.length < 500 && this.splitrecovery > 100) {
+        if (m < 0.01 && colony.length < 50 && this.splitrecovery > 100) {
           offspring = this.split();
           this.splitrecovery = 0;
         }
         // if (m < 0.02 && m > 0.017) {
         if (this.lifeSpan > 300) {    
-          console.log("DEATH");
+        //   console.log("DEATH");
           var i = colony.indexOf(this);
           colony.splice(i, 1);
           return null;
@@ -257,15 +305,15 @@ class Agent {
         return String.fromCharCode(no);
     }
     edges() {
-        if (this.position.x > 600) {
+        if (this.position.x > 800) {
           this.position.x = 0;
         } else if (this.position.x < 0) {
-          this.position.x = 600;
+          this.position.x = 800;
         }
-        if (this.position.y > 600) {
+        if (this.position.y > 800) {
           this.position.y = 0;
         } else if (this.position.y < 0) {
-          this.position.y = 600;
+          this.position.y = 800;
         }
       }
 
@@ -343,5 +391,5 @@ function getStarterAgent() {
     // startGenome.addGene(new Gene("A"));
     // startGenome.addGene(new Gene("A"));
     // let startPos = [300, 300];
-    return new Agent(startGenome, 300, 300, 1);
+    return new Agent(startGenome, 400, 400, 1);
 }
