@@ -15,42 +15,8 @@ class Gene {
             default: return 0;
         }
     }
-}
-
-class Sector {
-    constructor(id) {
-        this.population = [];
-        // this.antibiotic = antibiotic;
-        this.id = id;
-    }
-}
-
-class Plate {
-    constructor(plateSize, startingfitness, effect) {
-        this.sectors = [];
-        for (var i = 0; i < plateSize; i++) {
-            this.sectors[i] = [];
-            for (var j = 0; j < plateSize; j++) {
-                this.sectors[i][j] = new Sector([i, j]);
-            }
-        }
-        this.effect = effect;
-        this.plateSize = plateSize;
-    }
-
-    
-
-
-
-
-
-
-
-
-    show() {
-        color(20);
-        rect(100, 100, this.plateSize, this.plateSize);
-        circle(100 + this.plateSize/2, 100 + this.plateSize/2, this.plateSize);
+    setGene(val) {
+        this.val = val;
     }
 }
 

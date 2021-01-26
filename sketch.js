@@ -15,7 +15,7 @@ var plate = null;
 
 function setup() {
   createCanvas(SIZE, SIZE);
-  plate = new Plate(SIZE - 200, 1, 1);
+  plate = new Plate(40, SIZE - 200, 1, 1);
 //   for (let i = 0; i < MAX; i++) {
 //     flock.push(new Agent);
 //   }
