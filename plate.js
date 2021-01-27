@@ -24,21 +24,31 @@ class Sector {
         
     }
 
+    addProximalAgent(agent) {
+        this.proximalAgents.push(agent);
+    }
+
     setupLinkage(sectors) {
         //replace the index with a reference to the sector
-        this.neighbours.forEach(function(ref) {
-            if (ref != this.id) ref = sectors[ref[0]][ref[1]];
-        })
+        for (var i = 0; i < this.neighbours.length; i++) {
+            if (!this.isEqual(this.neighbours[i])) this.neighbours[i] = sectors[this.neighbours[i][0]][this.neighbours[i][1]];
+        }
     }
 
     //adds an agent to the sector and informs neighbours of arrival
     addAgent(agent) {
+        var agent = agent;
         this.population.push(agent);
+        console.log(this.neighbours[0].id);
+        console.log(this.neighbours[1].id);
         // this.proximalAgents.push(agent); //agent is already there
-        this.neighbours.forEach(function(ref) {
+        for (var i = 0; i < this.neighbours.length; i++) {
+            // console.log(this.id);
+            // console.log(this.neighbours[i].id);
             //ensure all neighbours know of the agent
-            ref.proximalAgents.push(agent);
-        })
+            this.neighbours[i].proximalAgents.push(agent);
+        }
+        console.log("woo wee foo");
         return true;
     }
 
@@ -67,10 +77,20 @@ class Sector {
 
     getNeighbours() {return this.neighbours;}
 
-    update() {
-        this.population.forEach(function(agent) {
-            agent.run(neighbours);
-        })
+    update(sectors) { 
+        for (var i = 0; i < this.population.length; i++) {
+            let agent = this.population[i];
+            agent.run(this.proximalAgents, this.plateSize);
+            let secid = [floor((agent.position.x - 200)/(this.plateSize/this.size)), floor((agent.position.y - 200)/(this.plateSize/this.size))];
+            if (secid != this.id) {
+                let sector = sectors[sec[0], sec[1]];
+                moveAgent(agent, sector);
+            }
+        }
+    }
+
+    isEqual(sector) {
+        return (sector.id == this.id);
     }
 
 
@@ -91,19 +111,32 @@ class Plate {
             }
         }
 
+        for (var i = 0; i < size; i++) {
+            for (var j = 0; j < size; j++) {
+                this.sectors[i][j].setupLinkage(this.sectors);
+            }
+        }
+
         this.effect = effect;
         this.totalPopulation = 0;
     }
 
     addAgent(agent) {
-        this.sectors[floor((agent.position.x - 200)/(this.plateSize/this.size))][floor((agent.position.y - 200)/(this.plateSize/this.size))].addAgent(agent)
+        let x = floor((agent.position.x - 200)/(this.plateSize/this.size));
+        let y = floor((agent.position.y - 200)/(this.plateSize/this.size));
+        console.log(this.sectors[floor((agent.position.x - 200)/(this.plateSize/this.size))][floor((agent.position.y - 200)/(this.plateSize/this.size))])
+        this.sectors[x][y].proximalAgents.push(agent);
+        if (this.sectors[x][y].addAgent(agent)) console.log("succss");
         this.totalPopulation++;
     }
 
     updateAgents() {
 
-        for (var i = 0; i < size; i++) {
-            for (var j = 0; j < size; j++) {
+        for (var i = 0; i < this.size; i++) {
+            for (var j = 0; j < this.size; j++) {
+                if (this.sectors[i][j].population.length > 0) {
+                    console.log("Oooooo")
+                }
                 this.sectors[i][j].update();
             }
         }

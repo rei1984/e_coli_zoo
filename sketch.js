@@ -16,6 +16,7 @@ var plate = null;
 function setup() {
   createCanvas(SIZE, SIZE);
   plate = new Plate(40, SIZE - 200, 1, 1);
+  // plate.setupLinkage()
 //   for (let i = 0; i < MAX; i++) {
 //     flock.push(new Agent);
 //   }
@@ -31,20 +32,22 @@ function draw() {
   // circle(100 + (SIZE - 200)/2, 100 + (SIZE - 200)/2, 100)
 
   
-  // if (colony.length < 10) {
-  for (let i = 0; i < colony.length; i++) {
-    let o = colony[i].run(colony, SIZE - 200);
-    if (o != null) Newboids.push(o);
-  }
-  if (colony.length < 20) {
-      colony = colony.concat(Newboids);
-      Newboids = [];
-  }
+  // // if (colony.length < 10) {
+  // for (let i = 0; i < colony.length; i++) {
+  //   let o = colony[i].run(colony, SIZE - 200);
+  //   if (o != null) Newboids.push(o);
+  // }
+  // if (colony.length < 20) {
+  //     colony = colony.concat(Newboids);
+  //     Newboids = [];
+  // }
+  plate.updateAgents();
 
 }
 
 function mouseClicked() {
-  colony.push( new Agent(new Genome([new Gene("A"), new Gene("C"), new Gene("C")]), mouseX, mouseY, 1));
+  // colony.push( );
+  plate.addAgent(new Agent(new Genome([new Gene("A"), new Gene("C"), new Gene("C")]), mouseX, mouseY, 1));
   // colony.push(a);
   return false;
 }

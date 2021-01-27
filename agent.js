@@ -67,16 +67,6 @@ class Agent {
         return this.genome;
     }
     split() {
-        //get a location for split
-        // var loc = this.getSplitSpace();
-        // console.log("Splitting...");
-        // console.log(loc);
-
-        // if (loc == null) return null;
-
-        // console.log("Splitting going ahead");
-        //create new genome copy
-        
         var newGenome = mutate(this.genome);
         
         var newID = 2;
@@ -92,16 +82,6 @@ class Agent {
         } else {
             var offspring = new Agent(newGenome, this.position.x - 1, this.position.y - 1, newID);
         }
-
-        
-
-        // console.log(this.id + " SPLIT into " + newID + " with GENOME:[ " + newGenome.toString() + " ]...");
-
-        // space[loc.x][loc.y] = offspring;
-        // space[loc.x][loc.y] = offspring.toString();
-
-        // colony.push(offspring);
-
         return offspring;
     }
 
@@ -134,91 +114,60 @@ class Agent {
           return createVector(0, 0);
         }
     }
-    //TODO: Merge this and cohesion to save computation time
-    getSeparation(colony, plateSize) {
-        let desiredseparation = 20.0;
-        let steer = createVector(0, 0);
-        let count = 0;
-        // For every boid in the system, check if it's too close
-        for (let i = 0; i < colony.length; i++) {
-          let d = p5.Vector.dist(this.position, colony[i].position);
-          // If the distance is greater than 0 and less than an arbitrary amount (0 when you are yourself)
-          if ((d > 0) && (d < desiredseparation)) {
-            // Calculate vector pointing away from neighbor
-            let diff = p5.Vector.sub(this.position, colony[i].position);
-            diff.normalize();
-            diff.div(d); // Weight by distance
-            steer.add(diff);
-            count++; // Keep track of how many
-          }
-        }
-        
-        //ensure within bounds
 
-        let d = p5.Vector.dist(this.position, createVector(100 + plateSize/2, 100 + plateSize/2));
+    getSeparation(proximalAgents, plateSize) {
+        let force = createVector(0, 0);
+        let platecentre = createVector(100 + plateSize/2, 100 + plateSize/2);
+        proximalAgents.foreach(function(agent) {
+            // let d = p5.Vector.dist(this.position, agent.position);
+            // if (d > 0 && d < 20.0) {
+            if (!this.isEqual(agent)) {
+                let diff = p5.Vector.sub(this.position, agent.position);
+                diff.normalize();
+                diff.div(d);
+                force.add(diff);
+            }
+        })
+
+        if (proximalAgents.length > 0) {
+            force.div(proximalAgents.length);
+        }
+
+        let d = p5.Vector.dist(this.position, platecentre);
         if (d > plateSize/2 - 25) {
-            let diff = p5.Vector.sub(createVector(100 + plateSize/2, 100 + plateSize/2), this.position);
+            let diff = p5.Vector.sub(platecentre, this.position);
             diff.normalize();
             diff.div(d)
             diff.mult(100);
-            steer.add(diff);
+            force.add(diff);
         }
-        // Average -- divide by how many
-        if (count > 0) {
-          steer.div(count);
-        }
-      
+
         // As long as the vector is greater than 0
-        if (steer.mag() > 0) {
-          // Implement Reynolds: Steering = Desired - Velocity
-          steer.normalize();
-          steer.mult(this.maxspeed);
-          steer.sub(this.velocity);
-          steer.limit(this.maxforce);
+        if (force.mag() > 0) {
+            // Implement Reynolds: Steering = Desired - Velocity
+            force.normalize();
+            force.mult(this.maxspeed);
+            force.sub(this.velocity);
+            force.limit(this.maxforce);
         }
-        return steer;
-      }
-        // var o = [0, 0];
-        // for (var c of colony) {
-        //   let distVector = vectorDiff(this.position, c.position);
-        //   let vNorm = vectorNorm(distVector);
-        //   if (this != c && vNorm < 100) {
-        //     o = vectorSum(o, vectorScalar(distVector, 1 / (vNorm * vNorm * vNorm)));
-        //   }
-        // }
-        // return o;
-    getActingForces(colony) {
-        let cohesion = this.getCohesion(colony);
-        // let seperation = vectorScalar(this.getSeparation(colony), 1 * this.instability);
-        let seperation = this.getSeparation(colony);
-
-        sep.mult(1.4);
-        // ali.mult(1.0);
-        coh.mult(1.1);
-        
-        if (sep.x == 0 && sep.y == 0 && coh.x == 0 && coh.y == 0) {
-            this.acceleration.set(0, 0);
-            this.velocity.set(0, 0);
-        }
-
-        return ActingForces;
+        return force
     }
+
+    // //TODO: Merge this and cohesion to save computation time
 
     updatePosition() {
         this.position.add(this.velocity);
         return this.position;
     }
-    updateVelocity(colony, plateSize) {
+    updateVelocity(proximalAgents, plateSize) {
         // let coh = this.getCohesion(colony);
         let coh = createVector(0, 0);
         // let seperation = vectorScalar(this.getSeparation(colony), 1 * this.instability);
-        let sep = this.getSeparation(colony, plateSize);
+        let sep = this.getSeparation(proximalAgents, plateSize);
 
         var acceleration = createVector(0, 0);
 
         sep.mult(1.8);//1.4
-        // ali.mult(1.0);
-        // coh.mult(1);
 
         //if we have no need to seek or move away from another bacterium stop and don't move
         if (sep.x == 0 && sep.y == 0 && coh.x == 0 && coh.y == 0) {
@@ -238,11 +187,11 @@ class Agent {
 
 
 
-    run(colony, plateSize) {
+    run(proximalAgents, plateSize) {
         // this.flock(boids);
         let offspring = null;
-        this.updateVelocity(colony, plateSize);
-        this.borders();
+        this.updateVelocity(proximalAgents, plateSize);
+        // this.borders();
         this.show();
         let m = Math.random();
         if (m < 0.01 && colony.length < 50 && this.splitrecovery > 100) {
