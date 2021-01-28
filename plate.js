@@ -1,3 +1,15 @@
+function removeFromList(inArray, val) {
+    let outArray = [];
+    for (var i = 0; i < inArray.length; i++) {
+        if (inArray[i] === val) {
+            //removed
+        } else {
+            outArray.push(inArray[i]);
+        }
+    }
+    return outArray;
+}
+
 class Sector {
     constructor(id, size) {
         this.population = [];
@@ -5,6 +17,7 @@ class Sector {
         this.id = id;  
         this.neighbours = [];  
         this.proximalAgents = [];
+        this.size = size;
         /* 
         1   2   3
         4   i   5
@@ -31,66 +44,101 @@ class Sector {
     setupLinkage(sectors) {
         //replace the index with a reference to the sector
         for (var i = 0; i < this.neighbours.length; i++) {
-            if (!this.isEqual(this.neighbours[i])) this.neighbours[i] = sectors[this.neighbours[i][0]][this.neighbours[i][1]];
+            this.neighbours[i] = sectors[this.neighbours[i][0]][this.neighbours[i][1]];
         }
     }
 
     //adds an agent to the sector and informs neighbours of arrival
     addAgent(agent) {
-        var agent = agent;
+        console.log("adding agent " + agent.id + " to " + this.id);
         this.population.push(agent);
-        console.log(this.neighbours[0].id);
-        console.log(this.neighbours[1].id);
-        // this.proximalAgents.push(agent); //agent is already there
+        console.log(this.population);
+        console.log(this)
+        // console.log(this.neighbours[0].id);
+        // console.log(this.neighbours[1].id);
+        this.proximalAgents.push(agent); //agent is already there
         for (var i = 0; i < this.neighbours.length; i++) {
             // console.log(this.id);
             // console.log(this.neighbours[i].id);
             //ensure all neighbours know of the agent
             this.neighbours[i].proximalAgents.push(agent);
         }
-        console.log("woo wee foo");
+        console.log("DONE");
         return true;
     }
 
     //removes and agent and informs neighbours of departure
     moveAgent(agent, sink) {
-        this.neighbours.forEach(function(ref) {
-            if (ref.isEqual(sink)) {
-                ref.addAgent(agent);
-            } else {
-                ref.proximalAgents.remove(agent);
+        this.proximalAgents = removeFromList(this.proximalAgents, agent);
+        for (var i = 0; i < this.neighbours.length; i++) {
+            
+            // this.neighbours[i];
+            // console.log(ref.id);
+            // console.log(sink);
+            this.neighbours[i].proximalAgents = removeFromList(this.neighbours[i].proximalAgents, agent);
+            if (this.neighbours[i].isEqual(sink)) { 
+                this.neighbours[i].addAgent(agent);
             }
-        })
-        this.population.remove(agent);
-        this.proximalAgents.remove(agent);
+
+        }
+        this.population = removeFromList(this.population, agent);
+        console.log(this);
+        console.log(sink);
+        
+
         return true;
     }
 
     killAgent(agent) {
         this.neighbours.forEach(function(ref) {
-            ref.proximalAgents.remove(agent);
+            ref.proximalAgents = removeFromList(ref, agent);
         })
-        this.population.remove(agent);
-        this.proximalAgents.remove(agent);
+        this.population = removeFromList(this.population, agent);
+        this.proximalAgents = removeFromList(this.proximalAgents, agent);
         return true;       
     }
 
     getNeighbours() {return this.neighbours;}
 
-    update(sectors) { 
+    update(sectors, plateSize, size) { 
+        //for each agent in the sector
         for (var i = 0; i < this.population.length; i++) {
+            // console.log("wpp")
             let agent = this.population[i];
+
+            console.log("updating agent " + agent.id);
+
+            //display the agent
+            agent.show();
+            //update and move
             agent.run(this.proximalAgents, this.plateSize);
-            let secid = [floor((agent.position.x - 200)/(this.plateSize/this.size)), floor((agent.position.y - 200)/(this.plateSize/this.size))];
-            if (secid != this.id) {
-                let sector = sectors[sec[0], sec[1]];
-                moveAgent(agent, sector);
+
+            //if agent should die kill it
+            if (agent.die()) {
+                this.killAgent(agent);
+            }
+            //if agent can split
+            let offspring = agent.attempSplit();
+            if (offspring) {
+                console.log("SPLIT")
+                this.addAgent(offspring);
+            }
+            
+            //recalculate the sector id from updated position
+            let secid = [floor((agent.position.x - 100)/(plateSize/size)), floor((agent.position.y - 100)/(plateSize/size))];
+            if (!(secid[0] === this.id[0] && secid[1] === this.id[1])) {
+                console.log("agent " + agent.id + " moving sector from " + this.id + " to " + secid);
+                // let sector = sectors[secid[0], secid[1]];
+                //move from here to sink sector
+                this.moveAgent(agent, sectors[secid[0]][secid[1]]);
+                console.log(this);
+                console.log(sectors[secid[0]][secid[1]]);
             }
         }
     }
 
     isEqual(sector) {
-        return (sector.id == this.id);
+        return (sector.id[0] == this.id[0] && sector.id[1] == this.id[1]);
     }
 
 
@@ -122,11 +170,13 @@ class Plate {
     }
 
     addAgent(agent) {
-        let x = floor((agent.position.x - 200)/(this.plateSize/this.size));
-        let y = floor((agent.position.y - 200)/(this.plateSize/this.size));
-        console.log(this.sectors[floor((agent.position.x - 200)/(this.plateSize/this.size))][floor((agent.position.y - 200)/(this.plateSize/this.size))])
-        this.sectors[x][y].proximalAgents.push(agent);
-        if (this.sectors[x][y].addAgent(agent)) console.log("succss");
+        let x = floor((agent.position.x - 100)/(this.plateSize/this.size));
+        let y = floor((agent.position.y - 100)/(this.plateSize/this.size));
+        // console.log(x)
+        // console.log(y)
+        // this.sectors[x][y].proximalAgents.push(agent);
+        this.sectors[x][y].addAgent(agent)
+        // if () console.log("succss");
         this.totalPopulation++;
     }
 
@@ -134,18 +184,20 @@ class Plate {
 
         for (var i = 0; i < this.size; i++) {
             for (var j = 0; j < this.size; j++) {
-                if (this.sectors[i][j].population.length > 0) {
-                    console.log("Oooooo")
-                }
-                this.sectors[i][j].update();
+                this.sectors[i][j].update(this.sectors, this.plateSize, this.size);
             }
         }
 
     }
 
     show() {
+        let q = this.plateSize/this.size;
         color(20);
         rect(100, 100, this.plateSize, this.plateSize);
         circle(100 + this.plateSize/2, 100 + this.plateSize/2, this.plateSize);
+        for (var i = 0; i < this.sectors.length; i++) {
+            line(100 + i*q + q, 100, 100 + i*q + q, 900);
+            line(100, 100 + i*q + q, 900, 100 + i*q + q);
+        }
     }
 }

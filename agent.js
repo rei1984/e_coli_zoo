@@ -69,7 +69,7 @@ class Agent {
     split() {
         var newGenome = mutate(this.genome);
         
-        var newID = 2;
+        var newID = this.id + this.position.x;
 
         let r = Math.random();
 
@@ -118,16 +118,20 @@ class Agent {
     getSeparation(proximalAgents, plateSize) {
         let force = createVector(0, 0);
         let platecentre = createVector(100 + plateSize/2, 100 + plateSize/2);
-        proximalAgents.foreach(function(agent) {
+        for (var i = 0; i < proximalAgents.length; i++) {
             // let d = p5.Vector.dist(this.position, agent.position);
             // if (d > 0 && d < 20.0) {
-            if (!this.isEqual(agent)) {
-                let diff = p5.Vector.sub(this.position, agent.position);
+            let agent = proximalAgents[i];
+            stroke("red");
+            line(this.position, agent.position);
+            let diff = p5.Vector.sub(this.position, agent.position);
+            let d = p5.Vector.dist(this.position, agent.position);
+            if (d > 0) {
                 diff.normalize();
                 diff.div(d);
                 force.add(diff);
             }
-        })
+        }
 
         if (proximalAgents.length > 0) {
             force.div(proximalAgents.length);
@@ -152,6 +156,8 @@ class Agent {
         }
         return force
     }
+
+
 
     // //TODO: Merge this and cohesion to save computation time
 
@@ -185,29 +191,33 @@ class Agent {
 
     }
 
+    die() {
+        if (this.lifeSpan > 300) {    
+            console.log("DEATH");
+            return true;
+        }
+        this.lifeSpan++;
+        return false;
+    }
 
-
-    run(proximalAgents, plateSize) {
-        // this.flock(boids);
+    attempSplit() {
         let offspring = null;
-        this.updateVelocity(proximalAgents, plateSize);
-        // this.borders();
-        this.show();
         let m = Math.random();
-        if (m < 0.01 && colony.length < 50 && this.splitrecovery > 100) {
+        if (m < 0.01 && this.splitrecovery > 100) {
           offspring = this.split();
           this.splitrecovery = 0;
         }
-        // if (m < 0.02 && m > 0.017) {
-        if (this.lifeSpan > 300) {    
-        //   console.log("DEATH");
-          var i = colony.indexOf(this);
-          colony.splice(i, 1);
-          return null;
-        }
         this.splitrecovery++;
-        this.lifeSpan++;
         return offspring;
+    }
+
+    run(proximalAgents, plateSize) {
+        // this.flock(boids);
+        this.updateVelocity(proximalAgents, plateSize);
+        // this.borders();
+        this.show();
+
+        return true;
         // this.split();
     }
 
