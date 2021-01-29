@@ -62,6 +62,15 @@ class Agent {
         this.maxforce = 0.02; // Maximum steering force
         this.splitrecovery = 100;
         this.lifeSpan = 0;
+        let g = this.genome.getGenes();
+        this.resistance = 0;
+        if (g[0].toString() == "C" && g[1].toString() == "A") {
+            this.resistance = 0.5;
+            if (g[2].toString() == "A") {
+                console.log("woo")
+                this.resistance = 0.999;
+            }
+        }
     }
     getGenome() {
         return this.genome;
@@ -123,7 +132,7 @@ class Agent {
             // if (d > 0 && d < 20.0) {
             let agent = proximalAgents[i];
             stroke("red");
-            line(this.position, agent.position);
+            line(agent.position.x, agent.position.y, this.position.x, this.position.y);
             let diff = p5.Vector.sub(this.position, agent.position);
             let d = p5.Vector.dist(this.position, agent.position);
             if (d > 0) {
@@ -142,7 +151,7 @@ class Agent {
             let diff = p5.Vector.sub(platecentre, this.position);
             diff.normalize();
             diff.div(d)
-            diff.mult(100);
+            diff.mult(1000);
             force.add(diff);
         }
 
@@ -167,20 +176,32 @@ class Agent {
     }
     updateVelocity(proximalAgents, plateSize) {
         // let coh = this.getCohesion(colony);
-        let coh = createVector(0, 0);
+        let coh = createVector(Math.random(), Math.random());
+        if (Math.random() < 0.5) {
+            coh.x = coh.x*(-1);
+        }
+        if (Math.random() < 0.5) {
+            coh.y = coh.y*(-1);
+        }
+        coh.normalize();
+        coh.mult(this.maxspeed);
+        coh.sub(this.velocity);
+        coh.limit(this.maxspeed);
+        coh.mult(0.2);
+
         // let seperation = vectorScalar(this.getSeparation(colony), 1 * this.instability);
         let sep = this.getSeparation(proximalAgents, plateSize);
 
         var acceleration = createVector(0, 0);
 
-        sep.mult(1.8);//1.4
+        sep.mult(1.6);//1.4
 
         //if we have no need to seek or move away from another bacterium stop and don't move
         if (sep.x == 0 && sep.y == 0 && coh.x == 0 && coh.y == 0) {
             this.velocity.set(0, 0);
         } else {
             acceleration.add(sep);
-            // acceleration.add(coh);
+            acceleration.add(coh);
             this.velocity.add(acceleration);
             this.velocity.limit(this.maxspeed);
             this.updatePosition();
@@ -192,22 +213,37 @@ class Agent {
     }
 
     die() {
-        if (this.lifeSpan > 300) {    
+        if (this.lifeSpan > 20) {    
             console.log("DEATH");
             return true;
         }
-        this.lifeSpan++;
+        
         return false;
     }
+
+    feed(val) {
+        this.splitrecovery = this.splitrecovery * (1 + val);
+        this.lifeSpan = this.lifeSpan + 0.1 - (val); 
+    }
+
+    antibiotic(val, plateSize) {
+        let platecentre = createVector(100 + plateSize/2, 100 + plateSize/2);
+        let d = p5.Vector.dist(this.position, platecentre);
+        if (d < (plateSize - 600)/2) {
+            this.lifeSpan = this.lifeSpan + 10*(1-this.resistance); 
+        } else if (d < (plateSize - 300)/2) {
+                this.lifeSpan = this.lifeSpan + 1*(1-this.resistance);
+        }
+    } 
 
     attempSplit() {
         let offspring = null;
         let m = Math.random();
-        if (m < 0.01 && this.splitrecovery > 100) {
-          offspring = this.split();
-          this.splitrecovery = 0;
+        if (m < 0.01 && this.splitrecovery > 10) {
+            // this.lifeSpan++;
+            offspring = this.split();
+            this.splitrecovery = 0;
         }
-        this.splitrecovery++;
         return offspring;
     }
 
@@ -274,7 +310,7 @@ function mutate(genome) {
 
     let copy = genome.getGenes().slice();
     
-    if (Math.random() < 0.05) {
+    if (Math.random() < 0.09) {
         console.log("MUTATION!");
         //choose a base location for mutation
         let mutagen = Math.floor(Math.random() * copy.length);

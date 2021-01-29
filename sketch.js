@@ -47,7 +47,7 @@ function draw() {
 
 function mouseClicked() {
   // colony.push( );
-  plate.addAgent(new Agent(new Genome([new Gene("A"), new Gene("C"), new Gene("C")]), mouseX, mouseY, 1));
+  plate.addAgent(new Agent(new Genome([new Gene("C"), new Gene("C"), new Gene("A")]), mouseX, mouseY, 1));
   // colony.push(a);
   return false;
 }
