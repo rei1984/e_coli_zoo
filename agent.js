@@ -63,20 +63,19 @@ class Agent {
         this.splitrecovery = 100;
         this.lifeSpan = 0;
         let g = this.genome.getGenes();
-        this.resistance = 0;
+        this.resistance = 0.1;
         if (g[0].toString() == "C" && g[1].toString() == "A") {
-            this.resistance = 0.5;
+            this.resistance = 0.99;
             if (g[2].toString() == "A") {
-                console.log("woo")
-                this.resistance = 0.999;
+                this.resistance = 0.99999;
             }
         }
     }
     getGenome() {
         return this.genome;
     }
-    split() {
-        var newGenome = mutate(this.genome);
+    split(mutationRate) {
+        var newGenome = mutate(this.genome, mutationRate);
         
         var newID = this.id + this.position.x;
 
@@ -105,34 +104,14 @@ class Agent {
         return steer;
       }
 
-    getCohesion(colony) {
-        let neighbordist = 100;
-        let sum = createVector(0, 0); // Start with empty vector to accumulate all locations
-        let count = 0;
-        for (let i = 0; i < colony.length; i++) {
-          let d = p5.Vector.dist(this.position, colony[i].position);
-          if ((d > 0) && (d < neighbordist)) {
-            sum.add(colony[i].position); // Add location
-            count++;
-          }
-        }
-        if (count > 0) {
-          sum.div(count);
-          return this.seek(sum); // Steer towards the location
-        } else {
-          return createVector(0, 0);
-        }
-    }
-
-    getSeparation(proximalAgents, plateSize) {
+    getSeparation(proximalAgents, plateSize, platecentre) {
         let force = createVector(0, 0);
-        let platecentre = createVector(100 + plateSize/2, 100 + plateSize/2);
         for (var i = 0; i < proximalAgents.length; i++) {
             // let d = p5.Vector.dist(this.position, agent.position);
             // if (d > 0 && d < 20.0) {
             let agent = proximalAgents[i];
-            stroke("red");
-            line(agent.position.x, agent.position.y, this.position.x, this.position.y);
+            // stroke("red");
+            // line(agent.position.x, agent.position.y, this.position.x, this.position.y);
             let diff = p5.Vector.sub(this.position, agent.position);
             let d = p5.Vector.dist(this.position, agent.position);
             if (d > 0) {
@@ -174,8 +153,9 @@ class Agent {
         this.position.add(this.velocity);
         return this.position;
     }
-    updateVelocity(proximalAgents, plateSize) {
+    updateVelocity(proximalAgents, plateSize, platecentre) {
         // let coh = this.getCohesion(colony);
+        // let coh = createVector(0, 0);
         let coh = createVector(Math.random(), Math.random());
         if (Math.random() < 0.5) {
             coh.x = coh.x*(-1);
@@ -190,7 +170,7 @@ class Agent {
         coh.mult(0.2);
 
         // let seperation = vectorScalar(this.getSeparation(colony), 1 * this.instability);
-        let sep = this.getSeparation(proximalAgents, plateSize);
+        let sep = this.getSeparation(proximalAgents, plateSize, platecentre);
 
         var acceleration = createVector(0, 0);
 
@@ -222,34 +202,34 @@ class Agent {
     }
 
     feed(val) {
-        this.splitrecovery = this.splitrecovery * (1 + val);
+        this.splitrecovery = this.splitrecovery + val;
         this.lifeSpan = this.lifeSpan + 0.1 - (val); 
     }
 
     antibiotic(val, plateSize) {
-        let platecentre = createVector(100 + plateSize/2, 100 + plateSize/2);
+        let platecentre = createVector(LIP + plateSize/2, LIP + plateSize/2);
         let d = p5.Vector.dist(this.position, platecentre);
         if (d < (plateSize - 600)/2) {
             this.lifeSpan = this.lifeSpan + 10*(1-this.resistance); 
         } else if (d < (plateSize - 300)/2) {
-                this.lifeSpan = this.lifeSpan + 1*(1-this.resistance);
+                this.lifeSpan = this.lifeSpan + (1-this.resistance);
         }
     } 
 
-    attempSplit() {
+    attempSplit(mutationRate) {
         let offspring = null;
         let m = Math.random();
         if (m < 0.01 && this.splitrecovery > 10) {
             // this.lifeSpan++;
-            offspring = this.split();
+            offspring = this.split(mutationRate);
             this.splitrecovery = 0;
         }
         return offspring;
     }
 
-    run(proximalAgents, plateSize) {
+    run(proximalAgents, plateSize, platecentre) {
         // this.flock(boids);
-        this.updateVelocity(proximalAgents, plateSize);
+        this.updateVelocity(proximalAgents, plateSize, platecentre);
         // this.borders();
         this.show();
 
@@ -293,33 +273,45 @@ class Agent {
     show() {
         // strokeWeight(10);
         // fill(127, 127);
-        stroke(200);
+        // stroke(200);
+        
         let r = this.genome.getGenes()[0].toInteger();
         let g = this.genome.getGenes()[1].toInteger();
         let b = this.genome.getGenes()[2].toInteger();
+        stroke(r, g, b, 150);
         fill(r, g, b);
         ellipse(this.position.x, this.position.y, 16, 16);
+        
+        // fill(r, g, b, 150);
+        // ellipse(this.position.x, this.position.y, 40, 40);
     }
 }
 
 //TODO: mutation function
-function mutate(genome) {
+function mutate(genome, mutationRate) {
     // if (Math.round(Math.random() * (100)) > 5) return genome;
 
     // mutatedFlag = 1;
 
     let copy = genome.getGenes().slice();
     
-    if (Math.random() < 0.09) {
-        console.log("MUTATION!");
+    if (Math.random() < mutationRate) {
+        // console.log("MUTATION!");
         //choose a base location for mutation
         let mutagen = Math.floor(Math.random() * copy.length);
 
         //mutate that space with a random base
-        let base = (["A", "C", "T", "G"][Math.floor(Math.random()*4)])
+        // let base = (["A", "C", "T", "G"][Math.floor(Math.random()*4)])
+        switch(copy[mutagen].toString()) {
+            case "A": copy[mutagen] = new Gene("T"); break;
+            case "C": copy[mutagen] = new Gene("G"); break;
+            case "T": copy[mutagen] = new Gene("A"); break;
+            case "G": copy[mutagen] = new Gene("C"); break;
+            
+        }
 
         //set the gene
-        copy[mutagen] = new Gene(base);
+        
 
     }
 
