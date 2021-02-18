@@ -20,7 +20,7 @@ class Sector {
         this.proximalAgents = [];
         this.size = size;
         this.food = 1.0;
-        this.angle = createVector(position.x + size/2, position.y + size/2).heading();
+        // this.angle = createVector(position.x + size/2, position.y + size/2).heading();
         /* 
         1   2   3
         4   i   5
@@ -41,28 +41,6 @@ class Sector {
     }
 
     show(plateSize) {
-        // if (this.food < 0.1) {
-        //     fill(1, 20);
-        //     stroke(1, 20);
-        // } else if (this.food < 0.3) {
-        //     fill(30, 20);
-        //     stroke(30, 20);
-        // } else if (this.food < 0.5) {
-        //     fill(60, 20);
-        //     stroke(60, 20);
-        // } else if (this.food < 0.7) {
-        //     fill(90, 20);
-        //     stroke(90, 20);
-        // } else if (this.food < 0.9) {
-        //     fill(120, 20);
-        //     stroke(120, 20);
-        // } else if (this.food < 1) {
-        //     fill(150, 20);
-        //     stroke(150, 20);
-        // } else {
-        //     fill(170, 20);
-        //     stroke(170, 20);
-        // }
         fill(this.food*255, 20);
         stroke(this.food*255, 20);
         square(this.position.x, this.position.y, plateSize/this.size);
@@ -189,6 +167,7 @@ class Sector {
     }
 
     isEqual(sector) {
+        if (sector == null) return false;
         return (sector.id[0] == this.id[0] && sector.id[1] == this.id[1]);
     }
 

@@ -42,10 +42,11 @@ class Genome {
     }
     toString() {
         var out = "";
-        for (var i = 0; i < this.genes.length - 1; i++) {
-            out += this.genes[i].toString() + ", ";
+        for (var i = 0; i < this.genes.length; i++) {
+            // out += this.genes[i].toString() + ", ";
+            out += this.genes[i].toString()
         } 
-        out += this.genes[this.genes.length - 1].toString();
+        // out += this.genes[this.genes.length - 1].toString();
         return out;
     }
 }

@@ -11,12 +11,14 @@ const MAX = 200;
 
 var plate = null;
 var pauseFlag = false;
+var PickedUpAgent = null;
 // let flag = 0;
 // sampleSpace[startPos] = starter;
 // space[SIZE/2][SIZE/2] = "@";
 
 
 function setup() {
+  textFont('Helvetica');
   var myCanvas = createCanvas(SIZE, SIZE);
   // myCanvas.parent('simdiv');
   sidepanel = new SidePanel(SIZE);
@@ -52,15 +54,20 @@ function draw() {
   //     Newboids = [];
   // }
   plate.updateAgents(pauseFlag, true, sidepanel.getMutationRate());
+  if (PickedUpAgent) {
+    PickedUpAgent.show();
+    PickedUpAgent.position = createVector(mouseX, mouseY);
+  }
 
 }
 
-function mouseClicked() {
-  // colony.push( );
-  plate.addAgent(new Agent(new Genome([new Gene("G"), new Gene("T"), new Gene("T")]), mouseX, mouseY, 1));
-  // colony.push(a);
-  return false;
-}
+// function doubleClick() {
+//   // colony.push( );
+//   console.log([mouseX, mouseY])
+//   plate.addAgent(new Agent(new Genome([new Gene("G"), new Gene("T"), new Gene("T")]), mouseX, mouseY, 1));
+//   // colony.push(a);
+//   return false;
+// }
 
 function keyPressed() {
   if (keyCode === 80) {
@@ -68,16 +75,49 @@ function keyPressed() {
   }
 }
 
-function mousePressed() {
-  //check if trying to pick up a bacterium
-  // let x = floor((agent.position.x - LIP)/(this.plateSize/this.size));
-  // let y = floor((agent.position.y - LIP)/(this.plateSize/this.size));
+function mouseClicked() {
+  // check if trying to pick up a bacterium
 
-  // for (let i = 0; i < plate.sectors[x][y].population.length; i++) {
-  //   if (p5.Vector.dist(plate.sectors[x][y].population[i].position, createVector(mouseX, mouseY)) < 10) {
-  //     plate.sectors[x][y].moveAgent(plate.sectors[x][y].population[i], null);
-  //   }
-  // }
+  let x = floor((mouseX - LIP)/(PLATESIZE/30));
+  let y = floor((mouseY - LIP)/(PLATESIZE/30));
+  
+  if (x > 30 || y > 30 ) {
+    //if on the sequencer
+    if (p5.Vector.dist(createVector(mouseX, mouseY), createVector(1025, 300)) < 35) {
+      if (PickedUpAgent) {
+        sidepanel.sequencer.SequenceAgent(PickedUpAgent);
+        PickedUpAgent = null;
+      } else {
+        PickedUpAgent = sidepanel.sequencer.getAgent();
+        sidepanel.sequencer.releaseAgent();
+      }
+    } else if (p5.Vector.dist(createVector(mouseX, mouseY), createVector(1100, 300)) < 15) {
+      if (PickedUpAgent) {
+        sidepanel.sequencer.addCMPAgent(PickedUpAgent);
+        PickedUpAgent = null;
+      } else {
+        PickedUpAgent = sidepanel.sequencer.getCMPAgent();
+        sidepanel.sequencer.releaseCMPAgent();
+      }     
+    } else {
 
+    }
+  } else {
+    let i = 0;
+    if (PickedUpAgent) {
+      plate.addAgent(PickedUpAgent, mouseX, mouseY, 1);
+      PickedUpAgent = null;
+    } else {
+      while (i < plate.sectors[x][y].population.length) {
+        if (p5.Vector.dist(plate.sectors[x][y].population[i].position, createVector(mouseX, mouseY)) < 10) {
+          console.log(plate.sectors[x][y].population[i]);
+          PickedUpAgent = plate.sectors[x][y].population[i];
+          plate.sectors[x][y].moveAgent(plate.sectors[x][y].population[i], null);
+          return;
+        }
+        i++;
+      }  
+    }  
+  }
   
 }
