@@ -42,6 +42,7 @@ class Sector {
 
     show(plateSize) {
         fill(this.food*255, 20);
+        strokeWeight(1);
         stroke(this.food*255, 20);
         square(this.position.x, this.position.y, plateSize/this.size);
         
@@ -253,6 +254,8 @@ class Plate {
 
     show() {
         let q = this.plateSize/this.size;
+        strokeWeight(1);
+        stroke(200);
         fill(51);
         rect(LIP, LIP, this.plateSize, this.plateSize);
         circle(LIP + this.plateSize/2, LIP + this.plateSize/2, this.plateSize);

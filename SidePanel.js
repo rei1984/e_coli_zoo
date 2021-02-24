@@ -6,26 +6,37 @@ class Sequencer {
         this.out = "Nothing to sequence";
         // this.filler = "TGAAAACGGAGTTGCCGACGACGAAAGCGACTTTGGGTTC";
         this.animationFrame = 0;
-        this.sector = new Sector(0, 1, createVector(990, 265));
-        this.CMPsector = new Sector(0, 1, createVector(1100, 265));
+        this.sector = new Sector(0, 1, createVector(990, 315));
+        this.CMPsector = new Sector(0, 1, createVector(1100, 315));
         this.CMPcontent;
     }
 
     show() {
         //draw screen
-        rect(925, 75, 200, 175);
+        fill(255);
+        rect(925, 250, 200, 50);
         fill(0);
-        circle(1025, 300, 75);
-        circle(1100, 300, 35);
+        rect(925, 75, 200, 175);
+        stroke(255);
+        strokeWeight(4);
+        circle(1025, 350, 75);
+        circle(1100, 350, 35);
+        textSize(15);
+        strokeWeight(1)
+        stroke(0);
+        fill(0);
+        text("Compare To", 1100, 375);
+        // strokeWeight(1);
         textSize(20)
         //if there is an agent being sequenced:
         if (this.agent) {
-            let x = 930;
+            let x = 940;
             let y = 90;
-            let msg = "Sequence Complete.";
+            let msg = "Sequenced. ";
             //print the sequence
             for (var i = 0; i < this.animationFrame; i++) {
                 fill('white');
+                stroke('white');
                 //if we have a CMP being made then highlight the differences
                 if (this.comparisonAgent) {
                     // if (i == 18) {
@@ -33,47 +44,52 @@ class Sequencer {
                     // }
                     if (i == 10 && this.CMPcontent.charAt(0) != this.content.charAt(0)) {
                         fill('red');
-                        msg += "Change at sp10 from " + this.CMPcontent.charAt(0) + " to " + this.content.charAt(0);
+                        stroke('red');
+                        msg += "[bp10: " + this.CMPcontent.charAt(0) + " to " + this.content.charAt(0) + "] ";
                     } else if (i == 18 && this.CMPcontent.charAt(1) != this.content.charAt(1)) {
-                        console.log("cancer")
                         fill('red');
-                        msg += "Change at sp18 from " + this.CMPcontent.charAt(1) + " to " + this.content.charAt(1);
+                        stroke('red');
+                        msg += "[bp18: " + this.CMPcontent.charAt(1) + " to " + this.content.charAt(1) + "] ";
                     } else if (i == 31 && this.CMPcontent.charAt(2) != this.content.charAt(2)) {
                         fill('red');
-                        msg += "Change at sp31 from " + this.CMPcontent.charAt(2) + " to " + this.content.charAt(2);
+                        stroke('red');
+                        msg += "[bp31:" + this.CMPcontent.charAt(2) + " to " + this.content.charAt(2) + "] ";
                     }
                 }
                 //print
                 text( this.out[i], x, y);
                 x += textWidth(this.out[i]) + 3;
-                if (x > 1120) {
-                    x = 930;
+                if (x > 1110) {
+                    x = 940;
                     y += 30;
                 }
             }
-            fill(100);
-            rect(925, 200, 200, 50);
-            text(msg, 925, 200, 200, 50);
+            textSize(15);
+            stroke(0);
+            fill(0);
+            text(msg, 925, 250, 200, 50);
             
 
             //update the main sector
-            this.sector.update(null, 70, createVector(1025, 300), 1, false, false, 0);
+            this.sector.update(null, 70, createVector(1025, 350), 1, false, false, 0);
             //update the CMP sector
             if (this.animationFrame < this.out.length) {
                 this.animationFrame++;
             }
         }
         if (this.comparisonAgent) {
-            this.CMPsector.update(null, 35, createVector(1100, 300), 1, false, false, 0);
+            this.CMPsector.update(null, 35, createVector(1100, 350), 1, false, false, 0);
             //increment animation frame
         }
     }
 
     SequenceAgent(agent) {
+        let temp = this.agent;
+        if (this.agent) this.releaseAgent();
         this.agent = agent;
         this.animationFrame = 0;
         this.content = this.agent.getGenome().toString();
-        this.out = "TGAAAACGGAGTTGCCGACGACGAAAGCGACTTTGGGTTC";
+        this.out = "TGAAAACGGAGTTGCCGACGACGAAAGCGACTTTGGGTTCTTACCGATAAGC";
         console.log(this.content);
         this.out = replaceAt(this.out, 10, this.content[0]);
         this.out = replaceAt(this.out, 18, this.content[1]);
@@ -82,13 +98,18 @@ class Sequencer {
         // this.out = temp;
         // this.out = "";
         this.sector.addAgent(agent);
+        return temp;
+
     }
 
     addCMPAgent(agent) {
+        let temp = this.comparisonAgent;
+        if (this.comparisonAgent) this.releaseCMPAgent();
         this.animationFrame = 0;
         this.comparisonAgent = agent;
         this.CMPcontent = this.comparisonAgent.getGenome().toString();
         this.CMPsector.addAgent(agent);
+        return temp;
     }
 
     releaseCMPAgent() {
@@ -128,7 +149,7 @@ class SidePanel {
         this.playpause.style("font-size", "25px");
         this.playpause.style('background-color',255);
         this.playpause.size(this.panelx/2, this.panelx/3);
-        console.log(this.playpause);
+        // console.log(this.playpause);
 
         //slider to control mutation
         this.mutationRateSlider = createSlider(0.0, 0.5, 0.05, 0.001);
@@ -137,7 +158,7 @@ class SidePanel {
 
         //dna screen
         this.sequencer = new Sequencer();
-        // this.sequencer.SequenceAgent(new Agent(new Genome([new Gene("G"), new Gene("T"), new Gene("T")]), 1012, 350, 1))
+        this.sequencer.SequenceAgent(new Agent(new Genome([new Gene("G"), new Gene("T"), new Gene("T")]), 1012, 350, 1))
         
         //
 

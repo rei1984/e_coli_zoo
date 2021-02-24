@@ -8,6 +8,7 @@ const SIZE = 1200;
 const PLATESIZE = SIZE - 400;
 const LIP = 50;
 const MAX = 200;
+const SQR = 30;
 
 var plate = null;
 var pauseFlag = false;
@@ -22,8 +23,15 @@ function setup() {
   var myCanvas = createCanvas(SIZE, SIZE);
   // myCanvas.parent('simdiv');
   sidepanel = new SidePanel(SIZE);
-  plate = new Plate(30, PLATESIZE, 1, 1);
+  dialog = new DialogBox();
+  plate = new Plate(SQR, PLATESIZE, 1, 1);
   pauseFlag = false;
+  this.next = createButton("Next");
+  this.next.position(1040, 1050);
+  this.next.mouseClicked(incrementStage);
+  this.next.style("font-size", "25px");
+  this.next.style('background-color',255);
+  this.next.size(100);
   // plate.setupLinkage()
 //   for (let i = 0; i < MAX; i++) {
 //     flock.push(new Agent);
@@ -39,6 +47,7 @@ function draw() {
   fill(60);
   plate.show();
   sidepanel.show(SIZE);
+  dialog.show();
   fill(80);
   fill("purple");
   // circle(100 + (SIZE - 200)/2, 100 + (SIZE - 200)/2, 100)
@@ -78,23 +87,21 @@ function keyPressed() {
 function mouseClicked() {
   // check if trying to pick up a bacterium
 
-  let x = floor((mouseX - LIP)/(PLATESIZE/30));
-  let y = floor((mouseY - LIP)/(PLATESIZE/30));
+  let x = floor((mouseX - LIP)/(PLATESIZE/SQR));
+  let y = floor((mouseY - LIP)/(PLATESIZE/SQR));
   
-  if (x > 30 || y > 30 ) {
+  if (x > SQR || y > SQR) {
     //if on the sequencer
-    if (p5.Vector.dist(createVector(mouseX, mouseY), createVector(1025, 300)) < 35) {
+    if (p5.Vector.dist(createVector(mouseX, mouseY), createVector(1025, 350)) < 35) {
       if (PickedUpAgent) {
-        sidepanel.sequencer.SequenceAgent(PickedUpAgent);
-        PickedUpAgent = null;
+        PickedUpAgent = sidepanel.sequencer.SequenceAgent(PickedUpAgent);
       } else {
         PickedUpAgent = sidepanel.sequencer.getAgent();
         sidepanel.sequencer.releaseAgent();
       }
-    } else if (p5.Vector.dist(createVector(mouseX, mouseY), createVector(1100, 300)) < 15) {
+    } else if (p5.Vector.dist(createVector(mouseX, mouseY), createVector(1100, 350)) < 15) {
       if (PickedUpAgent) {
-        sidepanel.sequencer.addCMPAgent(PickedUpAgent);
-        PickedUpAgent = null;
+        PickedUpAgent = sidepanel.sequencer.addCMPAgent(PickedUpAgent);
       } else {
         PickedUpAgent = sidepanel.sequencer.getCMPAgent();
         sidepanel.sequencer.releaseCMPAgent();
