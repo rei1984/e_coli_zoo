@@ -68,6 +68,7 @@ class Sequencer {
             stroke(0);
             fill(0);
             text(msg, 925, 250, 200, 50);
+            text("Sequence-o-matic-5000", 1025, 65);
             
 
             //update the main sector
@@ -98,6 +99,14 @@ class Sequencer {
         // this.out = temp;
         // this.out = "";
         this.sector.addAgent(agent);
+        
+        if (dialog.stage == 3 && this.agent.genome.toString() == dialog.target.genome.toString()) {
+            incrementStage();
+            if (this.comparisonAgent && this.comparisonAgent.genome.toString() == "GTT") {
+                incrementStage();
+            }
+        }
+
         return temp;
 
     }
@@ -109,6 +118,12 @@ class Sequencer {
         this.comparisonAgent = agent;
         this.CMPcontent = this.comparisonAgent.getGenome().toString();
         this.CMPsector.addAgent(agent);
+
+        if (dialog.stage == 4 && agent.genome.toString() == "GTT") {
+            console.log("NOOO")
+            incrementStage();
+        }
+
         return temp;
     }
 
@@ -192,6 +207,18 @@ function playPauseToggle() {
         this.style('background-color','grey');
         this.html("Resume");
     }
+    return pauseFlag;
+}
+
+function pauseSet(b) {
+    pauseFlag = b;
+    if (!pauseFlag) {
+        sidepanel.playpause.style('background-color','white');
+        sidepanel.playpause.html("Pause");
+    } else {
+        sidepanel.playpause.style('background-color','grey');
+        sidepanel.playpause.html("Resume");
+    }   
     return pauseFlag;
 }
 

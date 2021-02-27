@@ -148,8 +148,22 @@ class Sector {
                     //if agent can split
                     let offspring = agent.attempSplit(mutationRate);
                     if (offspring) {
-                        // console.log("SPLIT")
                         this.addAgent(offspring);
+                        if (!firstMitosisFlag) {
+                            firstMitosisFlag = true;
+                            setTimeout(() => {  dialog.setupAgileBox(0, offspring); }, 2000);
+                        }
+                        if (!firstMutagenFlag && offspring.genome.toString() != agent.genome.toString()) {
+                            firstMutagenFlag = true;
+                            setTimeout(() => {  dialog.setupAgileBox(1, offspring); }, 2000);
+                            dialog.target = offspring;
+                            interruptStage(3);
+                        }
+                        if (!secondaryMutagenFlag && dialog.stage > 5 && offspring.genome.toString() == "CAT") {
+                            secondaryMutagenFlag = true;
+                            setTimeout(() => {  dialog.setupAgileBox(2, offspring); }, 2000);
+                            dialog.target = offspring;
+                        }
                     }
                     
                     //recalculate the sector id from updated position

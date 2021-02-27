@@ -13,6 +13,13 @@ const SQR = 30;
 var plate = null;
 var pauseFlag = false;
 var PickedUpAgent = null;
+var firstMutagenFlag = false;
+var firstMitosisFlag = false;
+var secondaryMutagenFlag = false;
+var secondaryMutagenInAntiBioticFlag = false;
+var primaryMutagenFlag = false;
+var primaryMutagenInAntiBioticFlag = false;
+var next = null;
 // let flag = 0;
 // sampleSpace[startPos] = starter;
 // space[SIZE/2][SIZE/2] = "@";
@@ -22,16 +29,17 @@ function setup() {
   textFont('Helvetica');
   var myCanvas = createCanvas(SIZE, SIZE);
   // myCanvas.parent('simdiv');
-  sidepanel = new SidePanel(SIZE);
+  
   dialog = new DialogBox();
   plate = new Plate(SQR, PLATESIZE, 1, 1);
   pauseFlag = false;
-  this.next = createButton("Next");
-  this.next.position(1040, 1050);
-  this.next.mouseClicked(incrementStage);
-  this.next.style("font-size", "25px");
-  this.next.style('background-color',255);
-  this.next.size(100);
+  sidepanel = new SidePanel(SIZE);
+  next = createButton("Next");
+  next.position(1040, 1050);
+  next.mouseClicked(incrementStage);
+  next.style("font-size", "25px");
+  next.style('background-color',255);
+  next.size(100);
   // plate.setupLinkage()
 //   for (let i = 0; i < MAX; i++) {
 //     flock.push(new Agent);
@@ -47,7 +55,7 @@ function draw() {
   fill(60);
   plate.show();
   sidepanel.show(SIZE);
-  dialog.show();
+  
   fill(80);
   fill("purple");
   // circle(100 + (SIZE - 200)/2, 100 + (SIZE - 200)/2, 100)
@@ -67,6 +75,7 @@ function draw() {
     PickedUpAgent.show();
     PickedUpAgent.position = createVector(mouseX, mouseY);
   }
+  dialog.show();
 
 }
 
@@ -78,13 +87,14 @@ function draw() {
 //   return false;
 // }
 
-function keyPressed() {
-  if (keyCode === 80) {
-    pauseFlag = !pauseFlag;
+function keyTyped() {
+  if (key == 'p') {
+    PickedUpAgent = new Agent(new Genome([new Gene("G"), new Gene("T"), new Gene("T")]), mouseX, mouseY);
   }
 }
 
 function mouseClicked() {
+  console.log([mouseX, mouseY]);
   // check if trying to pick up a bacterium
 
   let x = floor((mouseX - LIP)/(PLATESIZE/SQR));

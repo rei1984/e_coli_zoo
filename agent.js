@@ -211,9 +211,20 @@ class Agent {
         let platecentre = createVector(LIP + plateSize/2, LIP + plateSize/2);
         let d = p5.Vector.dist(this.position, platecentre);
         if (d < (plateSize - 600)/2) {
+            if (!primaryMutagenInAntiBioticFlag && dialog.stage > 5 && this.genome.toString() == "CAA") {
+                // dialog.target = this;
+                primaryMutagenInAntiBioticFlag = true;
+                interruptStage(7);
+                // setTimeout(() => {  dialog.setupAgileBox(3, this); }, 2000);
+            }
             this.lifeSpan = this.lifeSpan + 10*(1-this.resistance); 
         } else if (d < (plateSize - 300)/2) {
-                this.lifeSpan = this.lifeSpan + (1-this.resistance);
+            if (!secondaryMutagenInAntiBioticFlag && this.genome.toString() == "CAT") {
+                // dialog.target = this;
+                secondaryMutagenInAntiBioticFlag = true;
+                setTimeout(() => {  dialog.setupAgileBox(3, this); }, 2000);
+            }
+            this.lifeSpan = this.lifeSpan + (1-this.resistance);
         }
     } 
 
